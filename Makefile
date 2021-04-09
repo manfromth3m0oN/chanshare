@@ -7,4 +7,7 @@ buid:
 build-win:
 	go build -o build/$(NAME).exe
 
+run:
+	./build/chanshare
+
 .PHONY: build build-win
