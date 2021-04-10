@@ -2,6 +2,7 @@ package main
 
 import (
 	"C"
+	"flag"
 	"log"
 	"runtime"
 	"time"
@@ -25,6 +26,7 @@ var m *mpv.Mpv
 var media []string
 var mediaPos int
 var requesting bool
+var host bool
 
 func init() {
 	runtime.LockOSThread()
@@ -32,6 +34,13 @@ func init() {
 
 
 func main() {
+	flag.BoolVar(&host, "h", false, "Set your chanshare instance as host")
+	flag.Parse()
+	log.Printf("Hosting mode is set to: %v", host)
+	if host == true {
+		go hostFunc()
+	}
+
 	if err := glfw.Init(); err != nil {
 		closer.Fatalln(err)
 	}
@@ -39,7 +48,7 @@ func main() {
 	glfw.WindowHint(glfw.ContextVersionMinor, 2)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
-	win, err := glfw.CreateWindow(winWidth, winHeight, "Nuklear Demo", nil, nil)
+	win, err := glfw.CreateWindow(winWidth, winHeight, "chanshare", nil, nil)
 	if err != nil {
 		closer.Fatalln(err)
 	}
@@ -57,6 +66,10 @@ func main() {
 
 	m = mpv.Create()
 	defer m.TerminateDestroy()
+	err = m.SetOption("loop-playlist", mpv.FORMAT_FLAG, true)
+	if err != nil {
+		log.Fatalf("Failed to set loop: %v", err)
+	}
 	err = m.RequestLogMessages("trace")
 	if err != nil {
 		log.Fatalf("Unable to get mpv logs: %s", err)
@@ -64,7 +77,7 @@ func main() {
 
 	atlas := nk.NewFontAtlas()
 	nk.NkFontStashBegin(&atlas)
-	sansFont := nk.NkFontAtlasAddDefault(atlas, 14, nil)
+	sansFont := nk.NkFontAtlasAddDefault(atlas, 13, nil)
 	nk.NkFontStashEnd()
 	if sansFont != nil {
 		nk.NkStyleSetFont(ctx, sansFont.Handle())
@@ -79,14 +92,15 @@ func main() {
 
 	state := &State{
 		bgColor: nk.NkRgba(28, 48, 62, 255),
+		vol: 35,
 	}
 	nk.NkTexteditInitDefault(&state.board)
 	nk.NkTexteditInitDefault(&state.thread)
 
-	err = m.SetOptionString("vo", "opengl-cb")
-	if err != nil {
-		log.Fatalln(err)
-	}
+	//err = m.SetOptionString("vo", "opengl-cb")
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
 
 	err = m.Initialize()
 	if err != nil {
@@ -100,7 +114,7 @@ func main() {
 
 	err = mgl.InitGL()
 	if err != nil {
-		log.Println(err)
+		log.Printf("InitGL Error: %v", err)
 	}
 	defer mgl.UninitGL()
 
@@ -120,8 +134,12 @@ func main() {
 				close(exitC)
 				continue
 			}
+			err := m.SetOption("volume", mpv.FORMAT_INT64, int(state.vol))
+			if err != nil {
+				log.Fatalf("Failed to change volume: %v", err)
+			}
 			glfw.PollEvents()
-			gfxMain(win, ctx, state, mgl)
+			controlsMain(win, ctx, state, mgl)
 			win.SwapBuffers()
 		}
 	}

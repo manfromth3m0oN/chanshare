@@ -2,6 +2,8 @@ github.com/go-gl/gl v0.0.0-20210315015930-ae072cafe09d h1:o81yRlBATU4PRn97lydmsq
 github.com/go-gl/gl v0.0.0-20210315015930-ae072cafe09d/go.mod h1:482civXOzJJCPzJ4ZOX/pwvXBWSnzD4OKMdH4ClKGbk=
 github.com/go-gl/glfw v0.0.0-20210311203641-62640a716d48 h1:2Ql7UigDMdlF+Ii12kdox7RKw3J1+uGhXn9FyYbbd20=
 github.com/go-gl/glfw v0.0.0-20210311203641-62640a716d48/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
+github.com/go-gl/glfw/v3.3/glfw v0.0.0-20210311203641-62640a716d48 h1:QrUfZrT8n72FUuiABt4tbu8PwDnOPAbnj3Mql1UhdRI=
+github.com/go-gl/glfw/v3.3/glfw v0.0.0-20210311203641-62640a716d48/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/golang-ui/nuklear v0.0.0-20200321220456-89da3f6a587a h1:4xYcuzxZD7RXiBDHZE4JsNV06F9/e1ZMKOB8TisS6s8=
 github.com/golang-ui/nuklear v0.0.0-20200321220456-89da3f6a587a/go.mod h1:xX2vbAOtImdmMK3nPye2JyxCZbPmbjg/IVBIzuxReKU=
 github.com/xlab/closer v0.0.0-20190328110542-03326addb7c2 h1:LPYwXwwHigHHFX3SFa9W9zBIa5reyaLJos2e95eHh68=

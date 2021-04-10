@@ -43,11 +43,9 @@ func next() {
 	if mediaPos > len(media) {
 		mediaPos = 0
 	} else {
-		mediaPos = mediaPos + 1
+		mediaPos += 1
 	}
-	mediaPos += 1
 	log.Printf("New mediaPos: %d", mediaPos)
-	log.Println(media)
 	loadFile(media[mediaPos])
 }
 
@@ -59,6 +57,5 @@ func prev() {
 		mediaPos -= 1 
 	}
 	log.Printf("New mediaPos: %d", mediaPos)
-	log.Println(media)
 	loadFile(media[mediaPos])
 }

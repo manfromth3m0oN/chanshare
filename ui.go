@@ -11,12 +11,12 @@ import (
 
 var pauseTextState = 0
 
-func gfxMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvGL) {
+func controlsMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvGL) {
 	nk.NkPlatformNewFrame()
 
 	// Layout
 	bounds := nk.NkRect(50, 50, 230, 250)
-	update := nk.NkBegin(ctx, "Demo", bounds,
+	update := nk.NkBegin(ctx, "Controls", bounds,
 		nk.WindowBorder|nk.WindowMovable|nk.WindowScalable|nk.WindowMinimizable|nk.WindowTitle)
 
 	if update > 0 {
@@ -51,6 +51,10 @@ func gfxMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvGL) {
 				go loadThread(state.thread.GetGoString(), state.board.GetGoString())
 			}
 		}
+		nk.NkLayoutRowDynamic(ctx, 25, 1)
+		{
+			nk.NkPropertyInt(ctx, "Volume", 0, &state.vol, 100, 10, 1)
+		}
 	}
 	nk.NkEnd(ctx)
 
@@ -62,6 +66,26 @@ func gfxMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvGL) {
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 	gl.ClearColor(bg[0], bg[1], bg[2], bg[3])
 	mgl.Draw(0, width, height)
+	nk.NkPlatformRender(nk.AntiAliasingOn, maxVertexBuffer, maxElementBuffer)
+}
+
+func shareMain(win *glfw.Window, ctx *nk.Context) {
+	nk.NkPlatformNewFrame()
+
+	// Layout
+	bounds := nk.NkRect(350, 50, 230, 250)
+	update := nk.NkBegin(ctx, "Share", bounds,
+		nk.WindowBorder|nk.WindowMovable|nk.WindowScalable|nk.WindowMinimizable|nk.WindowTitle)
+
+	if update > 0 {
+		nk.NkLayoutRowDynamic(ctx, 30, 2)
+		{
+			if nk.NkButtonLabel(ctx, "Test") > 0 {
+				log.Println("Test Pressed")
+			}
+		}
+	}
+	nk.NkEnd(ctx)
 	nk.NkPlatformRender(nk.AntiAliasingOn, maxVertexBuffer, maxElementBuffer)
 }
 
@@ -78,13 +102,14 @@ type State struct {
 	opt     Option
 	board    nk.TextEdit
 	thread   nk.TextEdit
+	vol      int32
 }
 
 func onError(code int32, msg string) {
 	log.Printf("[glfw ERR]: error %d: %s", code, msg)
 }
 
-func flag(v bool) int32 {
+func bitFlag(v bool) int32 {
 	if v {
 		return 1
 	}
