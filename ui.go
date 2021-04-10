@@ -20,7 +20,7 @@ func gfxMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvGL) {
 		nk.WindowBorder|nk.WindowMovable|nk.WindowScalable|nk.WindowMinimizable|nk.WindowTitle)
 
 	if update > 0 {
-		nk.NkLayoutRowStatic(ctx, 30, 80, 1)
+		nk.NkLayoutRowDynamic(ctx, 30, 1)
 		{
 			pauseText := ""
 			switch pauseTextState {
@@ -34,18 +34,21 @@ func gfxMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvGL) {
 		nk.NkLayoutRowDynamic(ctx, 30, 2)
 		{
 			if nk.NkButtonLabel(ctx, "Prev") > 0 {
-				log.Println("Next Pressed")
+				log.Println("Prev Pressed")
+				prev()
 			}
 			if nk.NkButtonLabel(ctx, "Next") > 0 {
-				log.Println("Prev Pressed")
+				log.Println("Next Pressed")
+				next()
 			}
 		}
 		nk.NkLayoutRowDynamic(ctx, 30, 1)
 		{
 			nk.NkEditBuffer(ctx, nk.EditField, &state.board, nk.NkFilterDefault)
 			nk.NkEditBuffer(ctx, nk.EditField, &state.thread, nk.NkFilterDefault)
-			if nk.NkButtonLabel(ctx, "Print Entered Text") > 0 {
+			if nk.NkButtonLabel(ctx, "Load thread") > 0 {
 				log.Printf("Requested thread %s from baord %s", state.thread.GetGoString(), state.board.GetGoString())
+				go loadThread(state.thread.GetGoString(), state.board.GetGoString())
 			}
 		}
 	}

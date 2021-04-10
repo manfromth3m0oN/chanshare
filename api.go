@@ -39,18 +39,20 @@ type Thread struct {
 func getThread(no uint32, board string) Thread {
 	url := fmt.Sprintf("https://a.4cdn.org/%s/thread/%d.json", board, no)
 
+	log.Printf("Requested from url: %s", url)
+
 	httpClient := http.Client{
-		Timeout: time.Second * 10,
+		Timeout: time.Second * 1,
 	}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error creating new request: %v", err)
 	}
 
 	res, getErr := httpClient.Do(req)
 	if getErr != nil {
-		log.Fatal(getErr)
+		log.Fatalf("Error executing request: %v", getErr)
 	}
 
 	if res.Body != nil {
@@ -59,13 +61,13 @@ func getThread(no uint32, board string) Thread {
 
 	body, readErr := ioutil.ReadAll(res.Body)
 	if readErr != nil {
-		log.Fatal(readErr)
+		log.Fatalf("Error reading response: %v", readErr)
 	}
 
 	thread := Thread{}
 	jsonErr := json.Unmarshal(body, &thread)
 	if jsonErr != nil {
-		log.Fatal(jsonErr)
+		log.Fatalf("Error marshaling request into json: %v", jsonErr)
 	}
 
 	return thread

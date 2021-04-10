@@ -22,10 +22,14 @@ const (
 )
 
 var m *mpv.Mpv
+var media []string
+var mediaPos int
+var requesting bool
 
 func init() {
 	runtime.LockOSThread()
 }
+
 
 func main() {
 	if err := glfw.Init(); err != nil {
@@ -53,18 +57,18 @@ func main() {
 
 	m = mpv.Create()
 	defer m.TerminateDestroy()
+	err = m.RequestLogMessages("trace")
+	if err != nil {
+		log.Fatalf("Unable to get mpv logs: %s", err)
+	}
 
 	atlas := nk.NewFontAtlas()
 	nk.NkFontStashBegin(&atlas)
-	// sansFont := nk.NkFontAtlasAddFromBytes(atlas, MustAsset("assets/FreeSans.ttf"), 16, nil)
-	// config := nk.NkFontConfig(14)
-	// config.SetOversample(1, 1)
-	// config.SetRange(nk.NkFontChineseGlyphRanges())
-	// simsunFont := nk.NkFontAtlasAddFromFile(atlas, "/Library/Fonts/Microsoft/SimHei.ttf", 14, &config)
+	sansFont := nk.NkFontAtlasAddDefault(atlas, 14, nil)
 	nk.NkFontStashEnd()
-	// if simsunFont != nil {
-	// 	nk.NkStyleSetFont(ctx, simsunFont.Handle())
-	// }
+	if sansFont != nil {
+		nk.NkStyleSetFont(ctx, sansFont.Handle())
+	}
 
 	exitC := make(chan struct{}, 1)
 	doneC := make(chan struct{}, 1)
@@ -79,14 +83,14 @@ func main() {
 	nk.NkTexteditInitDefault(&state.board)
 	nk.NkTexteditInitDefault(&state.thread)
 
+	err = m.SetOptionString("vo", "opengl-cb")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	err = m.Initialize()
 	if err != nil {
 		log.Fatalf("Mpv Init: %v", err)
-	}
-
-	err = m.Command([]string{"loadfile", "https://i.4cdn.org/gif/1617923805991.webm"})
-	if err != nil {
-		log.Fatalln(err)
 	}
 
 	mgl := m.GetSubApiGL()
@@ -101,8 +105,9 @@ func main() {
 	defer mgl.UninitGL()
 
 
-	fpsTicker := time.NewTicker(time.Second / 30)
+	fpsTicker := time.NewTicker(time.Second / 15)
 	for {
+		if requesting == false {
 		select {
 		case <-exitC:
 			nk.NkPlatformShutdown()
@@ -119,5 +124,6 @@ func main() {
 			gfxMain(win, ctx, state, mgl)
 			win.SwapBuffers()
 		}
+	}
 	}
 }
