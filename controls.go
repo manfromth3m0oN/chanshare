@@ -33,6 +33,7 @@ func loadThread(thread string, board string) {
 	media = []string{}
 	media = extractMedia(threadStruct, board)
 	requesting = false
+	log.Println(media)
 	mediaPos = 0
 	loadFile(media[mediaPos])
 

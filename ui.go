@@ -26,7 +26,11 @@ type State struct {
 	opt     Option
 	board   nk.TextEdit
 	thread  nk.TextEdit
+	connIp  nk.TextEdit
 	vol     int32
+	controlTreeState nk.CollapseStates
+	clientTreeState nk.CollapseStates
+	hostTreeState nk.CollapseStates
 }
 
 func controlsMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvGL) {
@@ -38,52 +42,76 @@ func controlsMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvG
 		nk.WindowBorder|nk.WindowMovable|nk.WindowScalable|nk.WindowMinimizable|nk.WindowTitle)
 
 	if update > 0 {
-		nk.NkLayoutRowDynamic(ctx, 30, 1)
-		{
-			pauseText := ""
-			switch pauseTextState {
-			case 0:
-				pauseText = "Pause"
-			case 1:
-				pauseText = "Play"
+		if nk.NkTreeStatePush(ctx, nk.TreeNode, "Video Controls", &state.controlTreeState) > 0 {
+			nk.NkLayoutRowDynamic(ctx, 30, 1)
+			{
+				pauseText := ""
+				switch pauseTextState {
+				case 0:
+					pauseText = "Pause"
+				case 1:
+					pauseText = "Play"
+				}
+				if nk.NkButtonLabel(ctx, pauseText) > 0 {
+					pause()
+				}
 			}
-			if nk.NkButtonLabel(ctx, pauseText) > 0 {
-				pause()
+			nk.NkLayoutRowDynamic(ctx, 30, 2)
+			{
+				if nk.NkButtonLabel(ctx, "Prev") > 0 {
+					log.Println("Prev Pressed")
+					prev()
+				}
+				if nk.NkButtonLabel(ctx, "Next") > 0 {
+					log.Println("Next Pressed")
+					next()
+				}
 			}
-		}
-		nk.NkLayoutRowDynamic(ctx, 30, 2)
-		{
-			if nk.NkButtonLabel(ctx, "Prev") > 0 {
-				log.Println("Prev Pressed")
-				prev()
+			nk.NkLayoutRowDynamic(ctx, 30, 1)
+			{
+				nk.NkEditBuffer(ctx, nk.EditField, &state.board, nk.NkFilterDefault)
+				nk.NkEditBuffer(ctx, nk.EditField, &state.thread, nk.NkFilterDefault)
+				if nk.NkButtonLabel(ctx, "Load thread") > 0 {
+					log.Printf("Requested thread %s from baord %s", state.thread.GetGoString(), state.board.GetGoString())
+					go loadThread(state.thread.GetGoString(), state.board.GetGoString())
+				}
 			}
-			if nk.NkButtonLabel(ctx, "Next") > 0 {
-				log.Println("Next Pressed")
-				next()
+			nk.NkLayoutRowDynamic(ctx, 25, 1)
+			{
+				nk.NkPropertyInt(ctx, "Volume", 0, &state.vol, 100, 10, 1)
 			}
-		}
-		nk.NkLayoutRowDynamic(ctx, 30, 1)
-		{
-			nk.NkEditBuffer(ctx, nk.EditField, &state.board, nk.NkFilterDefault)
-			nk.NkEditBuffer(ctx, nk.EditField, &state.thread, nk.NkFilterDefault)
-			if nk.NkButtonLabel(ctx, "Load thread") > 0 {
-				log.Printf("Requested thread %s from baord %s", state.thread.GetGoString(), state.board.GetGoString())
-				go loadThread(state.thread.GetGoString(), state.board.GetGoString())
-			}
-		}
-		nk.NkLayoutRowDynamic(ctx, 25, 1)
-		{
-			nk.NkPropertyInt(ctx, "Volume", 0, &state.vol, 100, 10, 1)
-		}
 
-		nk.NkLayoutRowDynamic(ctx, 25, 1)
-		{
-			urlSplits := strings.Split(media[mediaPos], "/")
-			log.Println(urlSplits)
-			fn := urlSplits[len(urlSplits)-1]
-			//log.Printf("Current media: %v", fn)
-			label := fmt.Sprintf("Playing: %s", fn)
-			nk.NkLabel(ctx, label, nk.TextAlignLeft)
+			nk.NkLayoutRowDynamic(ctx, 25, 1)
+			{
+				urlSplits := strings.Split(media[mediaPos], "/")
+				fn := urlSplits[len(urlSplits)-1]
+				label := fmt.Sprintf("Playing: %s", fn)
+				nk.NkLabel(ctx, label, nk.TextAlignLeft)
+			}
+			//Do not forget to end tree
+			nk.NkTreePop(ctx)
+		}
+		if host == true {
+			if nk.NkTreeStatePush(ctx, nk.TreeNode, "Host Controls", &state.hostTreeState) > 0 {
+				nk.NkLayoutRowDynamic(ctx, 30, 1)
+				{
+					nk.NkLabel(ctx, "hosting", nk.TextAlignCentered)
+				}
+				//Do not forget to end tree
+				nk.NkTreePop(ctx)
+			}
+		} else {
+			if nk.NkTreeStatePush(ctx, nk.TreeNode, "Client Controls", &state.clientTreeState) > 0 {
+				nk.NkLayoutRowDynamic(ctx, 30, 1)
+				{
+					nk.NkEditBuffer(ctx, nk.EditField, &state.connIp, nk.NkFilterDefault)
+					if nk.NkButtonLabel(ctx, "Connect") > 0 {
+						go clientConnect(state.connIp.GetGoString())
+					}
+				}
+				//Do not forget to end tree
+				nk.NkTreePop(ctx)
+			}
 		}
 	}
 	nk.NkEnd(ctx)

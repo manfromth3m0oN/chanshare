@@ -167,7 +167,7 @@ func extractMedia(t Thread, board string) []string {
 		if post.Tim == 0 {
 			media = append(media, "")
 		} else {
-			url := fmt.Sprintf("https://i.4cdn.org/%s/%d.webm", board, post.Tim)
+			url := fmt.Sprintf("https://i.4cdn.org/%s/%d%s", board, post.Tim, post.Ext)
 			media = append(media, url)
 		}
 	}

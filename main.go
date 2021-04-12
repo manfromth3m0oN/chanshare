@@ -98,6 +98,7 @@ func main() {
 	}
 	nk.NkTexteditInitDefault(&state.board)
 	nk.NkTexteditInitDefault(&state.thread)
+	nk.NkTexteditInitDefault(&state.connIp)
 
 	//err = m.SetOptionString("vo", "opengl-cb")
 	//if err != nil {
@@ -124,6 +125,8 @@ func main() {
 		log.Printf("InitGL Error: %v", err)
 	}
 	defer mgl.UninitGL()
+
+	loadFile(media[mediaPos])
 
 	fpsTicker := time.NewTicker(time.Second / 15)
 	for {

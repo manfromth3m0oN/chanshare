@@ -33,6 +33,7 @@ func hostFunc() {
 			log.Fatalf("Unable to accept connection: %v", err)
 		}
 		go handleConn(conn, clients, &m)
+		log.Println(clients)
 	}
 }
 
