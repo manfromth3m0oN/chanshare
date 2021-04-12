@@ -32,11 +32,11 @@ func hostFunc() {
 		if err != nil {
 			log.Fatalf("Unable to accept connection: %v", err)
 		}
-		go handleConn(conn, &clients, &m)
+		go handleConn(conn, clients, &m)
 	}
 }
 
-func handleConn(conn net.Conn, clients *[]string, m *sync.Mutex) {
+func handleConn(conn net.Conn, clients []string, m *sync.Mutex) {
 	defer conn.Close()
 	buf := make([]byte, 1024)
 	_, err := conn.Read(buf)
@@ -50,14 +50,28 @@ func handleConn(conn net.Conn, clients *[]string, m *sync.Mutex) {
 	}
 
 	switch req.Opt {
-	case skip: skip()
+	case skip:
+		mediaSkip(req.Nick)
 	case connect:
 		m.Lock()
-		*clients = append(*clients, req.Nick)
+		clients = append(clients, req.Nick)
 		m.Unlock()
 	case leave:
 		m.Lock()
-		*clients =
+		for i, nick := range clients {
+			if req.Nick == nick {
+				clients[i] = clients[len(clients)-1]
+				clients[len(clients)-1] = ""
+				clients = clients[:len(clients)-1]
+			}
+		}
 	}
-	conn.Write([]byte("msg recived"))
+	_, err = conn.Write([]byte("msg recived"))
+	if err != nil {
+		log.Printf("Failed to write to client %s", conn.RemoteAddr())
+	}
+}
+
+func mediaSkip(nick string) {
+	log.Printf("%s asked to skip", nick)
 }

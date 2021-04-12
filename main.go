@@ -4,6 +4,7 @@ import (
 	"C"
 	"flag"
 	"log"
+	"math/rand"
 	"runtime"
 	"time"
 
@@ -30,8 +31,9 @@ var host bool
 
 func init() {
 	runtime.LockOSThread()
+	rand.Seed(time.Now().UnixNano())
+	getRandomThread()
 }
-
 
 func main() {
 	flag.BoolVar(&host, "h", false, "Set your chanshare instance as host")
@@ -92,7 +94,7 @@ func main() {
 
 	state := &State{
 		bgColor: nk.NkRgba(28, 48, 62, 255),
-		vol: 35,
+		vol:     0,
 	}
 	nk.NkTexteditInitDefault(&state.board)
 	nk.NkTexteditInitDefault(&state.thread)
@@ -100,6 +102,11 @@ func main() {
 	//err = m.SetOptionString("vo", "opengl-cb")
 	//if err != nil {
 	//	log.Fatalln(err)
+	//}
+
+	//err = m.SetOption("image-display-duration", mpv.FORMAT_STRING, "inf")
+	//if err != nil {
+	//	log.Fatalf("Failed to set image duration: %v", err)
 	//}
 
 	err = m.Initialize()
@@ -118,30 +125,29 @@ func main() {
 	}
 	defer mgl.UninitGL()
 
-
 	fpsTicker := time.NewTicker(time.Second / 15)
 	for {
 		if requesting == false {
-		select {
-		case <-exitC:
-			nk.NkPlatformShutdown()
-			glfw.Terminate()
-			fpsTicker.Stop()
-			close(doneC)
-			return
-		case <-fpsTicker.C:
-			if win.ShouldClose() {
-				close(exitC)
-				continue
+			select {
+			case <-exitC:
+				nk.NkPlatformShutdown()
+				glfw.Terminate()
+				fpsTicker.Stop()
+				close(doneC)
+				return
+			case <-fpsTicker.C:
+				if win.ShouldClose() {
+					close(exitC)
+					continue
+				}
+				err := m.SetOption("volume", mpv.FORMAT_INT64, int(state.vol))
+				if err != nil {
+					log.Fatalf("Failed to change volume: %v", err)
+				}
+				glfw.PollEvents()
+				controlsMain(win, ctx, state, mgl)
+				win.SwapBuffers()
 			}
-			err := m.SetOption("volume", mpv.FORMAT_INT64, int(state.vol))
-			if err != nil {
-				log.Fatalf("Failed to change volume: %v", err)
-			}
-			glfw.PollEvents()
-			controlsMain(win, ctx, state, mgl)
-			win.SwapBuffers()
 		}
-	}
 	}
 }

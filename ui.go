@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -10,6 +12,22 @@ import (
 )
 
 var pauseTextState = 0
+
+type Option uint8
+
+const (
+	Easy Option = 0
+	Hard Option = 1
+)
+
+type State struct {
+	bgColor nk.Color
+	prop    int32
+	opt     Option
+	board   nk.TextEdit
+	thread  nk.TextEdit
+	vol     int32
+}
 
 func controlsMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvGL) {
 	nk.NkPlatformNewFrame()
@@ -24,8 +42,10 @@ func controlsMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvG
 		{
 			pauseText := ""
 			switch pauseTextState {
-			case 0: pauseText = "Pause"
-			case 1: pauseText = "Play"
+			case 0:
+				pauseText = "Pause"
+			case 1:
+				pauseText = "Play"
 			}
 			if nk.NkButtonLabel(ctx, pauseText) > 0 {
 				pause()
@@ -54,6 +74,16 @@ func controlsMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvG
 		nk.NkLayoutRowDynamic(ctx, 25, 1)
 		{
 			nk.NkPropertyInt(ctx, "Volume", 0, &state.vol, 100, 10, 1)
+		}
+
+		nk.NkLayoutRowDynamic(ctx, 25, 1)
+		{
+			urlSplits := strings.Split(media[mediaPos], "/")
+			log.Println(urlSplits)
+			fn := urlSplits[len(urlSplits)-1]
+			//log.Printf("Current media: %v", fn)
+			label := fmt.Sprintf("Playing: %s", fn)
+			nk.NkLabel(ctx, label, nk.TextAlignLeft)
 		}
 	}
 	nk.NkEnd(ctx)
@@ -87,22 +117,6 @@ func shareMain(win *glfw.Window, ctx *nk.Context) {
 	}
 	nk.NkEnd(ctx)
 	nk.NkPlatformRender(nk.AntiAliasingOn, maxVertexBuffer, maxElementBuffer)
-}
-
-type Option uint8
-
-const (
-	Easy Option = 0
-	Hard Option = 1
-)
-
-type State struct {
-	bgColor nk.Color
-	prop    int32
-	opt     Option
-	board    nk.TextEdit
-	thread   nk.TextEdit
-	vol      int32
 }
 
 func onError(code int32, msg string) {
