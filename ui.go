@@ -20,7 +20,7 @@ const (
 	Hard Option = 1
 )
 
-type State struct {
+type UiState struct {
 	bgColor nk.Color
 	prop    int32
 	opt     Option
@@ -33,11 +33,11 @@ type State struct {
 	hostTreeState nk.CollapseStates
 }
 
-func controlsMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvGL) {
+func controlsMain(win *glfw.Window, ctx *nk.Context, state *UiState, mgl *mpv.MpvGL) {
 	nk.NkPlatformNewFrame()
 
 	// Layout
-	bounds := nk.NkRect(50, 50, 230, 250)
+	bounds := nk.NkRect(50, 50, 300, 500)
 	update := nk.NkBegin(ctx, "Controls", bounds,
 		nk.WindowBorder|nk.WindowMovable|nk.WindowScalable|nk.WindowMinimizable|nk.WindowTitle)
 
@@ -97,6 +97,12 @@ func controlsMain(win *glfw.Window, ctx *nk.Context, state *State, mgl *mpv.MpvG
 				{
 					nk.NkLabel(ctx, "hosting", nk.TextAlignCentered)
 				}
+				nk.NkLayoutRowDynamic(ctx, 30, 1)
+				{
+					text := fmt.Sprintf("Client count: %d", len(clients))
+					nk.NkLabel(ctx, text, nk.TextAlignCentered)
+				}
+
 				//Do not forget to end tree
 				nk.NkTreePop(ctx)
 			}

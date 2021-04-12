@@ -22,16 +22,18 @@ func pause() {
 	}
 }
 
-func loadThread(thread string, board string) {
-	threadId, err := strconv.ParseInt(thread, 10, 32)
+func loadThread(threadString string, boardString string) {
+	board = boardString
+	threadId, err := strconv.ParseInt(threadString, 10, 32)
 	if err != nil {
 		log.Fatalf("Couldnt parse threadId to int: %v", err)
 	}
+	thread = uint32(threadId)
 	requesting = true
 	var threadStruct Thread
-	threadStruct = getThread(uint32(threadId), board)
+	threadStruct = getThread(uint32(threadId), boardString)
 	media = []string{}
-	media = extractMedia(threadStruct, board)
+	media = extractMedia(threadStruct, boardString)
 	requesting = false
 	log.Println(media)
 	mediaPos = 0

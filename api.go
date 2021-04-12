@@ -154,11 +154,12 @@ func getThreads(board string) Catalog {
 }
 
 func getRandomThread() {
-	catalog := getThreads("gif")
+	board = "gif"
+	catalog := getThreads(board)
 	rn := rand.Intn(len(catalog[0].Threads)-1) + 1
-	id := catalog[0].Threads[rn].No
-	thread := getThread(id, "gif")
-	media = extractMedia(thread, "gif")
+	thread = catalog[0].Threads[rn].No
+	threadjson := getThread(thread, "gif")
+	media = extractMedia(threadjson, "gif")
 }
 
 func extractMedia(t Thread, board string) []string {

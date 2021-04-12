@@ -1,11 +1,13 @@
 package main
 
 import (
-	"encoding/json"
+	"encoding/gob"
 	"log"
 	"net"
 	"sync"
 )
+
+var clients []string
 
 const (
 	skip = iota
@@ -18,8 +20,13 @@ type Req struct {
 	Opt  int    `json:"opt"`
 }
 
+type Resp struct {
+	Board string
+	Thread uint32
+	Pos int
+}
+
 func hostFunc() {
-	var clients []string
 	var m sync.Mutex
 	listener, err := net.Listen("tcp", ":42069")
 	if err != nil {
@@ -33,22 +40,18 @@ func hostFunc() {
 			log.Fatalf("Unable to accept connection: %v", err)
 		}
 		go handleConn(conn, clients, &m)
-		log.Println(clients)
 	}
 }
 
 func handleConn(conn net.Conn, clients []string, m *sync.Mutex) {
 	defer conn.Close()
-	buf := make([]byte, 1024)
-	_, err := conn.Read(buf)
-	if err != nil {
-		log.Printf("Unable to read req: %v", err)
-	}
+	dec := gob.NewDecoder(conn)
+	enc := gob.NewEncoder(conn)
+
 	var req Req
-	err = json.Unmarshal(buf, &req)
-	if err != nil {
-		log.Fatalf("Failed to unmarshal req")
-	}
+	dec.Decode(&req)
+
+	log.Println(req)
 
 	switch req.Opt {
 	case skip:
@@ -57,6 +60,13 @@ func handleConn(conn net.Conn, clients []string, m *sync.Mutex) {
 		m.Lock()
 		clients = append(clients, req.Nick)
 		m.Unlock()
+		log.Println(clients)
+		resp := Resp{
+			Board: board,
+			Thread: thread,
+			Pos: mediaPos,
+		}
+		enc.Encode(resp)
 	case leave:
 		m.Lock()
 		for i, nick := range clients {
@@ -66,10 +76,6 @@ func handleConn(conn net.Conn, clients []string, m *sync.Mutex) {
 				clients = clients[:len(clients)-1]
 			}
 		}
-	}
-	_, err = conn.Write([]byte("msg recived"))
-	if err != nil {
-		log.Printf("Failed to write to client %s", conn.RemoteAddr())
 	}
 }
 

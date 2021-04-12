@@ -28,8 +28,11 @@ var media []string
 var mediaPos int
 var requesting bool
 var host bool
+var board string
+var thread uint32
 
 func init() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	runtime.LockOSThread()
 	rand.Seed(time.Now().UnixNano())
 	getRandomThread()
@@ -92,23 +95,13 @@ func main() {
 		<-doneC
 	})
 
-	state := &State{
+	state := &UiState{
 		bgColor: nk.NkRgba(28, 48, 62, 255),
 		vol:     0,
 	}
 	nk.NkTexteditInitDefault(&state.board)
 	nk.NkTexteditInitDefault(&state.thread)
 	nk.NkTexteditInitDefault(&state.connIp)
-
-	//err = m.SetOptionString("vo", "opengl-cb")
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-
-	//err = m.SetOption("image-display-duration", mpv.FORMAT_STRING, "inf")
-	//if err != nil {
-	//	log.Fatalf("Failed to set image duration: %v", err)
-	//}
 
 	err = m.Initialize()
 	if err != nil {
